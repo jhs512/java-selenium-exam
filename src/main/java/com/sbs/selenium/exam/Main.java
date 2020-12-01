@@ -18,6 +18,47 @@ import org.openqa.selenium.chrome.ChromeOptions;
 
 public class Main {
 	public static void main(String[] args) {
+		printPpomppuFreeLatestArticles();
+	}
+
+	private static void printPpomppuFreeLatestArticles() {
+		Path path = Paths.get(System.getProperty("user.dir"), "src/main/resources/chromedriver.exe");
+
+		// WebDriver 경로 설정
+		System.setProperty("webdriver.chrome.driver", path.toString());
+
+		// WebDriver 옵션 설정
+		ChromeOptions options = new ChromeOptions();
+		options.addArguments("--start-maximized"); // 전체화면으로 실행
+		options.addArguments("--disable-popup-blocking"); // 팝업 무시
+		options.addArguments("--disable-default-apps"); // 기본앱 사용안함
+		// options.setHeadless(true);
+
+		// WebDriver 객체 생성
+		ChromeDriver driver = new ChromeDriver(options);
+
+		// 빈 탭 생성
+		// driver.executeScript("window.open('about:blank','_blank');");
+
+		List<String> tabs = new ArrayList<String>(driver.getWindowHandles());
+
+		// 첫번째 탭으로 전환
+		driver.switchTo().window(tabs.get(0));
+		driver.get("http://www.ppomppu.co.kr/zboard/zboard.php?id=freeboard");
+
+		Util.sleep(1000);
+
+		List<WebElement> elements = driver
+				.findElements(By.cssSelector("#revolution_main_table tbody tr:not(.list_notice) > td:nth-child(3) > a"));
+
+		for (WebElement element : elements) {
+			String title = element.getText().trim();
+
+			System.out.println(title);
+		}
+	}
+
+	private static void downloadUnsplashNatureImgs() {
 		Path path = Paths.get(System.getProperty("user.dir"), "src/main/resources/chromedriver.exe");
 
 		// WebDriver 경로 설정
@@ -41,10 +82,10 @@ public class Main {
 		// 첫번째 탭으로 전환
 		driver.switchTo().window(tabs.get(0));
 		driver.get("https://unsplash.com/t/nature");
-		
+
 		File downloadsFolder = new File("downloads");
-		
-		if ( downloadsFolder.exists() == false ) {
+
+		if (downloadsFolder.exists() == false) {
 			downloadsFolder.mkdir();
 		}
 
@@ -70,7 +111,7 @@ public class Main {
 
 			if (saveImage != null) {
 				try {
-					
+
 					String fileName = src.split("/")[3];
 					fileName = fileName.split("\\?")[0];
 					ImageIO.write(saveImage, "jpg", new File("downloads/" + fileName + ".jpg"));
