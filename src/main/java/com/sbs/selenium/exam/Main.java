@@ -1,10 +1,18 @@
 package com.sbs.selenium.exam;
 
+import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.IOException;
+import java.net.URL;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.imageio.ImageIO;
+
+import org.openqa.selenium.By;
+import org.openqa.selenium.WebElement;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
 
@@ -32,6 +40,46 @@ public class Main {
 
 		// 첫번째 탭으로 전환
 		driver.switchTo().window(tabs.get(0));
-		driver.get("https://www.naver.com");
+		driver.get("https://unsplash.com/t/nature");
+		
+		File downloadsFolder = new File("downloads");
+		
+		if ( downloadsFolder.exists() == false ) {
+			downloadsFolder.mkdir();
+		}
+
+		Util.sleep(1000);
+
+		List<WebElement> imgElements = driver
+				.findElements(By.cssSelector("[data-test=\"masonry-grid-count-three\"] img"));
+
+		for (WebElement imgElement : imgElements) {
+			String src = imgElement.getAttribute("src");
+
+			if (src.contains("images.unsplash.com/photo-") == false) {
+				continue;
+			}
+
+			BufferedImage saveImage = null;
+
+			try {
+				saveImage = ImageIO.read(new URL(src));
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+
+			if (saveImage != null) {
+				try {
+					
+					String fileName = src.split("/")[3];
+					fileName = fileName.split("\\?")[0];
+					ImageIO.write(saveImage, "jpg", new File("downloads/" + fileName + ".jpg"));
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+			}
+
+			System.out.println(src);
+		}
 	}
 }
