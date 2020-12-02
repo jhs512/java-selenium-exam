@@ -21,7 +21,79 @@ import com.sbs.selenium.exam.dto.DCInsideArticle;
 
 public class Main {
 	public static void main(String[] args) {
-		printDCInsideTreeGalleryLatestArticles();
+		printNaverNewsFlashLatestArticles();
+	}
+
+	private static void printNaverNewsFlashLatestArticles() {
+		File downloadsFolder = new File("downloads/naverNewsFlash");
+
+		if (downloadsFolder.exists() == false) {
+			downloadsFolder.mkdirs();
+		}
+
+		Path path = Paths.get(System.getProperty("user.dir"), "src/main/resources/chromedriver.exe");
+
+		// WebDriver 경로 설정
+		System.setProperty("webdriver.chrome.driver", path.toString());
+
+		// WebDriver 옵션 설정
+		ChromeOptions options = new ChromeOptions();
+		options.addArguments("--start-maximized"); // 전체화면으로 실행
+		options.addArguments("--disable-popup-blocking"); // 팝업 무시
+		options.addArguments("--disable-default-apps"); // 기본앱 사용안함
+		// options.setHeadless(true);
+
+		// WebDriver 객체 생성
+		ChromeDriver driver = new ChromeDriver(options);
+
+		// 빈 탭 생성
+		// driver.executeScript("window.open('about:blank','_blank');");
+
+		List<String> tabs = new ArrayList<String>(driver.getWindowHandles());
+
+		// 첫번째 탭으로 전환
+		driver.switchTo().window(tabs.get(0));
+		driver.get("https://news.naver.com/main/list.nhn?mode=LSD&mid=sec&sid1=001");
+
+		List<WebElement> elements = driver.findElements(By.cssSelector(".type06_headline li"));
+
+		for (WebElement element : elements) {
+			WebElement aElement = element.findElement(By.cssSelector("dt:not(.photo) > a"));
+			String href = aElement.getAttribute("href").trim();
+			href = href.split("aid=")[1];
+
+			String code = href.split("&")[0];
+			String title = element.findElement(By.cssSelector("dt:not(.photo) > a")).getText().trim();
+			String summary = element.findElement(By.cssSelector("dd > .lede")).getText().trim();
+			String channel = element.findElement(By.cssSelector("dd > .writing")).getText().trim();
+			String thumbUrl = "";
+
+			try {
+				thumbUrl = element.findElement(By.cssSelector("dt.photo > a > img")).getAttribute("src");
+			} catch (NoSuchElementException e) {
+
+			}
+
+			if (thumbUrl.length() > 0) {
+				BufferedImage saveImage = null;
+
+				try {
+					saveImage = ImageIO.read(new URL(thumbUrl));
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+
+				if (saveImage != null) {
+					try {
+						String fileName = code;
+						ImageIO.write(saveImage, "jpg", new File("downloads/naverNewsFlash/" + fileName + ".jpg"));
+					} catch (IOException e) {
+						e.printStackTrace();
+					}
+				}
+			}
+
+		}
 	}
 
 	private static void printDCInsideTreeGalleryLatestArticles() {
@@ -150,10 +222,10 @@ public class Main {
 		driver.switchTo().window(tabs.get(0));
 		driver.get("https://unsplash.com/t/nature");
 
-		File downloadsFolder = new File("downloads");
+		File downloadsFolder = new File("downloads/unsplash");
 
 		if (downloadsFolder.exists() == false) {
-			downloadsFolder.mkdir();
+			downloadsFolder.mkdirs();
 		}
 
 		Util.sleep(1000);
@@ -181,7 +253,7 @@ public class Main {
 
 					String fileName = src.split("/")[3];
 					fileName = fileName.split("\\?")[0];
-					ImageIO.write(saveImage, "jpg", new File("downloads/" + fileName + ".jpg"));
+					ImageIO.write(saveImage, "jpg", new File("downloads/unsplash/" + fileName + ".jpg"));
 				} catch (IOException e) {
 					e.printStackTrace();
 				}
